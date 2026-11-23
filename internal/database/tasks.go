@@ -101,4 +101,32 @@ func (s *TaskStore) Update(id int, input models.UpdateTaskInput) (*models.Task, 
 	returning *;
 	`
 
+	var updatedTask models.Task
+
+	err = s.db.QueryRowx(query, task.Title, task.Description, task.Completed, task.UpdatedAt, id).StructScan(&updatedTask)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedTask, nil
+}
+
+func (s *TaskStore) Delete(id int) error {
+	query := `DELETE FROM tasks WHERE id = $1`
+
+	result, err := s.db.Exec(query, id)
+	if err != nil {
+		return nil
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return fmt.Errorf("task with id %d not found", id)
+	}
+
+	return nil
 }
